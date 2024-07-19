@@ -6,6 +6,7 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [message, setMessage] = useState('');
 
   const handleSignup = async () => {
@@ -21,13 +22,10 @@ export default function RegisterScreen({ navigation }) {
   const handleGoogleSignup = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const { idToken } = userInfo;
-
+      const { idToken } = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       await auth().signInWithCredential(googleCredential);
-
-      setMessage('User registered with Google successfully!');
+      setMessage('Registered with Google successfully!');
       navigation.navigate('Login');
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -62,11 +60,14 @@ export default function RegisterScreen({ navigation }) {
           onChangeText={setPassword}
           secureTextEntry
         />
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
+        <TouchableOpacity style={[styles.button, styles.registerButton]} onPress={handleSignup}>
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleGoogleSignup}>
-          <Text style={styles.buttonText}>Register with Google</Text>
+        <TouchableOpacity style={[styles.button, styles.googleButton]} onPress={handleGoogleSignup}>
+          <View style={styles.googleContainer}>
+            <Image source={require('./pictures/google-logo.png')} style={styles.googleLogo} />
+            <Text style={styles.buttonText}>Register with Google</Text>
+          </View>
         </TouchableOpacity>
         <Text style={styles.message}>{message}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -89,10 +90,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: '#fff',
     borderRadius: 10,
     width: '90%',
     maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
   logo: {
     width: 120,
@@ -102,7 +108,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
     marginBottom: 20,
   },
   inputBox: {
@@ -115,16 +121,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#4A90E2',
-    padding: 15,
     borderRadius: 10,
     marginVertical: 10,
     width: '100%',
+    padding: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  registerButton: {
+    backgroundColor: 'transparent',
+    borderColor: '#4A90E2',
+    borderWidth: 2,
+    elevation: 2,
+  },
+  googleButton: {
+    backgroundColor: 'transparent',
+    borderColor: '#DB4437',
+    borderWidth: 2,
+    elevation: 2,
   },
   buttonText: {
-    color: '#fff',
-    textAlign: 'center',
+    color: '#333',
     fontSize: 18,
+  },
+  googleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleLogo: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
   },
   message: {
     color: 'red',
