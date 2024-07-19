@@ -1,55 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Button } from 'react-native';
 import axios from 'axios';
 
 export default function ZodiacDetailScreen({ route }) {
-  const { signName } = route.params;
-  const [signInfo, setSignInfo] = useState(null);
+  const { sign } = route.params;
   const [loading, setLoading] = useState(true);
+  const [zodiacInfo, setZodiacInfo] = useState(null);
+  const [error, setError] = useState(null);
+
+  const fetchZodiacInfo = async () => {
+    try {
+      const response = await axios.post(`https://aztro.sameerkumar.website/?sign=${sign}&day=today`);
+      setZodiacInfo(response.data);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to load zodiac information. Please try again later.');
+      setLoading(false);
+      console.error('API Error:', err);
+    }
+  };
 
   useEffect(() => {
-    const fetchSignInfo = async () => {
-      try {
-        // Replace with your actual API key if needed
-        const response = await axios.get(`https://json.astrologyapi.com/v1/sun_sign_prediction/daily/${signName}`, {
-          headers: {
-            'Authorization': 'Bearer YOUR_API_KEY'  // Add your API key here if required
-          }
-        });
-        setSignInfo(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error(error);
-        setLoading(false);
-      }
-    };
-
-    fetchSignInfo();
-  }, [signName]);
+    fetchZodiacInfo();
+  }, [sign]);
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.container}>
         <ActivityIndicator size="large" color="#4A90E2" />
-        <Text>Loading...</Text>
       </View>
     );
   }
 
-  if (!signInfo) {
+  if (error) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Unable to fetch data.</Text>
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+        <Button title="Retry" onPress={() => {
+          setLoading(true);
+          setError(null);
+          fetchZodiacInfo();
+        }} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* If there's no image URL in the response, you can remove or adjust this part */}
-      <Image source={{ uri: signInfo.imageUrl }} style={styles.image} />
-      <Text style={styles.name}>{signName}</Text>
-      <Text style={styles.description}>{signInfo.prediction}</Text>
+      <Text style={styles.title}>{zodiacInfo.sign}</Text>
+      <Text style={styles.description}>{zodiacInfo.description}</Text>
+      <Text style={styles.date}>{zodiacInfo.date_range}</Text>
     </View>
   );
 }
@@ -57,38 +57,31 @@ export default function ZodiacDetailScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#F5F5F5',
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 18,
-  },
-  image: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
-  },
-  name: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#4A90E2',
     marginBottom: 10,
   },
   description: {
     fontSize: 16,
+    color: '#333',
     textAlign: 'center',
+  },
+  date: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 10,
+  },
+  errorText: {
+    fontSize: 16,
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 20,
   },
 });

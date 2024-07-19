@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Alert, ActivityIndicator } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
@@ -9,8 +9,10 @@ export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [message, setMessage] = useState('');
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
+  const [isVerificationModalVisible, setIsVerificationModalVisible] = useState(false);
   const [verificationId, setVerificationId] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -18,57 +20,83 @@ export default function LoginScreen({ navigation }) {
     });
   }, []);
 
+  const showErrorAlert = (title, message) => {
+    Alert.alert(title, message, [{ text: 'OK' }], { cancelable: true });
+  };
+
   const handleLogin = async () => {
+    setLoading(true);
     try {
       await auth().signInWithEmailAndPassword(email, password);
       setMessage('Login successful');
-      navigation.navigate('Home');
+      navigation.navigate('Home');  // Redirect to home screen
     } catch (err) {
-      setMessage(err.message);
+      showErrorAlert('Login Error', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
+    setLoading(true);
     try {
       await GoogleSignin.hasPlayServices();
       const { idToken } = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       await auth().signInWithCredential(googleCredential);
       setMessage('Login with Google successful!');
-      navigation.navigate('Home');
+      navigation.navigate('Home');  // Redirect to home screen
     } catch (error) {
+      let errorMessage = 'An error occurred';
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        setMessage('User cancelled the login');
+        errorMessage = 'User cancelled the login';
       } else if (error.code === statusCodes.IN_PROGRESS) {
-        setMessage('Signing in');
+        errorMessage = 'Signing in';
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        setMessage('Play Services not available');
+        errorMessage = 'Play Services not available';
       } else {
-        setMessage('Error: ' + error.message);
+        errorMessage = 'Error: ' + error.message;
       }
+      showErrorAlert('Google Login Error', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePhoneLogin = async () => {
+  const handlePhoneLogin = () => {
+    setIsPhoneModalVisible(true);
+  };
+
+  const sendVerificationCode = async () => {
+    setLoading(true);
     try {
-      const formattedPhoneNumber = phoneNumber.startsWith('+91') ? phoneNumber : '+91' + phoneNumber;
+      let formattedPhoneNumber = phoneNumber;
+      if (!formattedPhoneNumber.startsWith('+91')) {
+        formattedPhoneNumber = '+91' + formattedPhoneNumber;
+      }
       const confirmation = await auth().signInWithPhoneNumber(formattedPhoneNumber);
       setVerificationId(confirmation.verificationId);
-      setIsModalVisible(true);
+      setIsPhoneModalVisible(false);
+      setIsVerificationModalVisible(true);
     } catch (err) {
-      setMessage(err.message);
+      showErrorAlert('Phone Login Error', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const confirmCode = async () => {
+    setLoading(true);
     try {
       const credential = auth.PhoneAuthProvider.credential(verificationId, verificationCode);
       await auth().signInWithCredential(credential);
       setMessage('Phone number login successful!');
-      setIsModalVisible(false);
-      navigation.navigate('Home');
+      setIsVerificationModalVisible(false);
+      navigation.navigate('Home');  // Redirect to home screen
     } catch (err) {
-      setMessage(err.message);
+      showErrorAlert('Verification Error', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -84,6 +112,7 @@ export default function LoginScreen({ navigation }) {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          accessibilityLabel="Email input"
         />
         <TextInput
           style={styles.inputBox}
@@ -91,18 +120,19 @@ export default function LoginScreen({ navigation }) {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          accessibilityLabel="Password input"
         />
-        <TouchableOpacity style={[styles.button, styles.loginButton]} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity style={[styles.button, styles.loginButton]} onPress={handleLogin} disabled={loading}>
+          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.googleButton]} onPress={handleGoogleLogin}>
+        <TouchableOpacity style={[styles.button, styles.googleButton]} onPress={handleGoogleLogin} disabled={loading}>
           <View style={styles.googleContainer}>
             <Image source={require('./pictures/google-logo.png')} style={styles.googleLogo} />
-            <Text style={styles.buttonText}>Login with Google</Text>
+            {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login with Google</Text>}
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={() => setIsModalVisible(true)}>
-          <Text style={styles.buttonText}>Login with Phone Number</Text>
+        <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={handlePhoneLogin} disabled={loading}>
+          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login with Phone Number</Text>}
         </TouchableOpacity>
         <Text style={styles.message}>{message}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -110,31 +140,45 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <Modal visible={isModalVisible} transparent={true} animationType="slide">
+      <Modal visible={isPhoneModalVisible} transparent={true} animationType="slide">
         <View style={styles.modalContainer}>
-          <TextInput
-            style={styles.inputBox}
-            placeholder="Enter Phone Number"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
-          />
-          <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={handlePhoneLogin}>
-            <Text style={styles.buttonText}>Send OTP</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={styles.inputBox}
-            placeholder="Enter Verification Code"
-            value={verificationCode}
-            onChangeText={setVerificationCode}
-            keyboardType="numeric"
-          />
-          <TouchableOpacity style={styles.button} onPress={confirmCode}>
-            <Text style={styles.buttonText}>Verify Code</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => setIsModalVisible(false)}>
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
+          <View style={styles.modalInnerContainer}>
+            <TextInput
+              style={styles.inputBox}
+              placeholder="Enter Your Phone Number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+              accessibilityLabel="Phone number input"
+            />
+            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={sendVerificationCode} disabled={loading}>
+              {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Send Verification Code</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsPhoneModalVisible(false)} disabled={loading}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={isVerificationModalVisible} transparent={true} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalInnerContainer}>
+            <TextInput
+              style={styles.inputBox}
+              placeholder="Enter Verification Code"
+              value={verificationCode}
+              onChangeText={setVerificationCode}
+              keyboardType="numeric"
+              accessibilityLabel="Verification code input"
+            />
+            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={confirmCode} disabled={loading}>
+              {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Verify Code</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsVerificationModalVisible(false)} disabled={loading}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </KeyboardAvoidingView>
@@ -193,21 +237,12 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: '#4A90E2',
-    borderColor: '#4A90E2',
-    borderWidth: 2,
-    elevation: 2,
   },
   googleButton: {
     backgroundColor: '#DB4437',
-    borderColor: '#DB4437',
-    borderWidth: 2,
-    elevation: 2,
   },
   phoneButton: {
     backgroundColor: '#34b7f1',
-    borderColor: '#34b7f1',
-    borderWidth: 2,
-    elevation: 2,
   },
   buttonText: {
     color: '#fff',
@@ -240,5 +275,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     padding: 20,
+  },
+  modalInnerContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalButton: {
+    backgroundColor: '#4A90E2',
+  },
+  cancelButton: {
+    backgroundColor: '#DB4437',
   },
 });

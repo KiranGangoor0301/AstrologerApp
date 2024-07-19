@@ -1,7 +1,12 @@
+// HomeScreen.js
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import auth from '@react-native-firebase/auth'; // Import Firebase Authentication
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen() {
+  const navigation = useNavigation();
+
   const zodiacSigns = [
     { name: 'Aries', image: require('./pictures/aries1.png') },
     { name: 'Taurus', image: require('./pictures/taurus.png') },
@@ -21,8 +26,41 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate('ZodiacDetail', { sign: sign.name.toLowerCase() });
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          onPress: () => {
+            auth()
+              .signOut()
+              .then(() => {
+                navigation.navigate('Login');
+              })
+              .catch(error => {
+                console.error('Sign Out Error', error);
+              });
+          }
+        }
+      ],
+      { cancelable: false }
+    );
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.menuButton}>
+        <Text style={styles.menuText}>☰ Menu</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+        <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
       <Image source={require('./pictures/astrology-banner.jpeg')} style={styles.banner} />
       <Text style={styles.welcomeText}>Welcome to Your Astrology App</Text>
       <Text style={styles.dailyHoroscopeTitle}>Daily Horoscope</Text>
@@ -100,5 +138,27 @@ const styles = StyleSheet.create({
   signName: {
     fontSize: 16,
     color: '#333',
+  },
+  menuButton: {
+    alignSelf: 'flex-start',
+    padding: 10,
+    backgroundColor: '#4A90E2',
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  menuText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  logoutButton: {
+    alignSelf: 'flex-end',
+    padding: 10,
+    backgroundColor: '#E94E77',
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
