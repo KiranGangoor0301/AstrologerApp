@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Button } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Alert } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
@@ -9,7 +9,8 @@ export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [message, setMessage] = useState('');
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
+  const [isVerificationModalVisible, setIsVerificationModalVisible] = useState(false);
   const [verificationId, setVerificationId] = useState('');
 
   useEffect(() => {
@@ -18,13 +19,17 @@ export default function LoginScreen({ navigation }) {
     });
   }, []);
 
+  const showErrorAlert = (title, message) => {
+    Alert.alert(title, message, [{ text: 'OK', onPress: () => {} }], { cancelable: true });
+  };
+
   const handleLogin = async () => {
     try {
       await auth().signInWithEmailAndPassword(email, password);
       setMessage('Login successful');
       // Navigate to the home screen or another screen
     } catch (err) {
-      setMessage(err.message);
+      showErrorAlert('Login Error', err.message);
     }
   };
 
@@ -37,25 +42,36 @@ export default function LoginScreen({ navigation }) {
       setMessage('Login with Google successful!');
       // Navigate to the home screen or another screen
     } catch (error) {
+      let errorMessage = 'An error occurred';
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        setMessage('User cancelled the login');
+        errorMessage = 'User cancelled the login';
       } else if (error.code === statusCodes.IN_PROGRESS) {
-        setMessage('Signing in');
+        errorMessage = 'Signing in';
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        setMessage('Play Services not available');
+        errorMessage = 'Play Services not available';
       } else {
-        setMessage('Error: ' + error.message);
+        errorMessage = 'Error: ' + error.message;
       }
+      showErrorAlert('Google Login Error', errorMessage);
     }
   };
 
-  const handlePhoneLogin = async () => {
+  const handlePhoneLogin = () => {
+    setIsPhoneModalVisible(true);
+  };
+
+  const sendVerificationCode = async () => {
     try {
-      const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
+      let formattedPhoneNumber = phoneNumber;
+      if (!formattedPhoneNumber.startsWith('+91')) {
+        formattedPhoneNumber = '+91' + formattedPhoneNumber;
+      }
+      const confirmation = await auth().signInWithPhoneNumber(formattedPhoneNumber);
       setVerificationId(confirmation.verificationId);
-      setIsModalVisible(true);
+      setIsPhoneModalVisible(false);
+      setIsVerificationModalVisible(true);
     } catch (err) {
-      setMessage(err.message);
+      showErrorAlert('Phone Login Error', err.message);
     }
   };
 
@@ -64,10 +80,10 @@ export default function LoginScreen({ navigation }) {
       const credential = auth.PhoneAuthProvider.credential(verificationId, verificationCode);
       await auth().signInWithCredential(credential);
       setMessage('Phone number login successful!');
-      setIsModalVisible(false);
+      setIsVerificationModalVisible(false);
       // Navigate to the home screen or another screen
     } catch (err) {
-      setMessage(err.message);
+      showErrorAlert('Verification Error', err.message);
     }
   };
 
@@ -100,7 +116,7 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.buttonText}>Login with Google</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={() => setIsModalVisible(true)}>
+        <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={handlePhoneLogin}>
           <Text style={styles.buttonText}>Login with Phone Number</Text>
         </TouchableOpacity>
         <Text style={styles.message}>{message}</Text>
@@ -109,21 +125,43 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <Modal visible={isModalVisible} transparent={true} animationType="slide">
+      <Modal visible={isPhoneModalVisible} transparent={true} animationType="slide">
         <View style={styles.modalContainer}>
-          <TextInput
-            style={styles.inputBox}
-            placeholder="Enter Verification Code"
-            value={verificationCode}
-            onChangeText={setVerificationCode}
-            keyboardType="numeric"
-          />
-          <TouchableOpacity style={styles.button} onPress={confirmCode}>
-            <Text style={styles.buttonText}>Verify Code</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => setIsModalVisible(false)}>
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
+          <View style={styles.modalInnerContainer}>
+            <TextInput
+              style={styles.inputBox}
+              placeholder="Enter Your Phone Number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+            />
+            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={sendVerificationCode}>
+              <Text style={styles.buttonText}>Send Verification Code</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsPhoneModalVisible(false)}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={isVerificationModalVisible} transparent={true} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalInnerContainer}>
+            <TextInput
+              style={styles.inputBox}
+              placeholder="Enter Verification Code"
+              value={verificationCode}
+              onChangeText={setVerificationCode}
+              keyboardType="numeric"
+            />
+            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={confirmCode}>
+              <Text style={styles.buttonText}>Verify Code</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsVerificationModalVisible(false)}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </KeyboardAvoidingView>
@@ -179,28 +217,18 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
   },
   loginButton: {
-    backgroundColor: 'transparent',
-    borderColor: '#4A90E2',
-    borderWidth: 2,
-    elevation: 2,
+    backgroundColor: '#4A90E2',
   },
   googleButton: {
-    backgroundColor: 'transparent',
-    borderColor: '#DB4437',
-    borderWidth: 2,
-    elevation: 2,
+    backgroundColor: '#DB4437',
   },
   phoneButton: {
-    backgroundColor: 'transparent',
-    borderColor: '#34b7f1',
-    borderWidth: 2,
-    elevation: 2,
+    backgroundColor: '#34b7f1',
   },
   buttonText: {
-    color: '#333',
+    color: '#fff',
     fontSize: 18,
   },
   googleContainer: {
@@ -230,5 +258,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     padding: 20,
+  },
+  modalInnerContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalButton: {
+    backgroundColor: '#4A90E2',
+  },
+  cancelButton: {
+    backgroundColor: '#DB4437',
   },
 });
