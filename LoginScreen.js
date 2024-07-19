@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
@@ -9,8 +9,7 @@ export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [message, setMessage] = useState('');
-  const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
-  const [isVerificationModalVisible, setIsVerificationModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [verificationId, setVerificationId] = useState('');
 
   useEffect(() => {
@@ -19,17 +18,13 @@ export default function LoginScreen({ navigation }) {
     });
   }, []);
 
-  const showErrorAlert = (title, message) => {
-    Alert.alert(title, message, [{ text: 'OK', onPress: () => {} }], { cancelable: true });
-  };
-
   const handleLogin = async () => {
     try {
       await auth().signInWithEmailAndPassword(email, password);
       setMessage('Login successful');
-      // Navigate to the home screen or another screen
+      navigation.navigate('Home');
     } catch (err) {
-      showErrorAlert('Login Error', err.message);
+      setMessage(err.message);
     }
   };
 
@@ -40,38 +35,28 @@ export default function LoginScreen({ navigation }) {
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       await auth().signInWithCredential(googleCredential);
       setMessage('Login with Google successful!');
-      // Navigate to the home screen or another screen
+      navigation.navigate('Home');
     } catch (error) {
-      let errorMessage = 'An error occurred';
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        errorMessage = 'User cancelled the login';
+        setMessage('User cancelled the login');
       } else if (error.code === statusCodes.IN_PROGRESS) {
-        errorMessage = 'Signing in';
+        setMessage('Signing in');
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        errorMessage = 'Play Services not available';
+        setMessage('Play Services not available');
       } else {
-        errorMessage = 'Error: ' + error.message;
+        setMessage('Error: ' + error.message);
       }
-      showErrorAlert('Google Login Error', errorMessage);
     }
   };
 
-  const handlePhoneLogin = () => {
-    setIsPhoneModalVisible(true);
-  };
-
-  const sendVerificationCode = async () => {
+  const handlePhoneLogin = async () => {
     try {
-      let formattedPhoneNumber = phoneNumber;
-      if (!formattedPhoneNumber.startsWith('+91')) {
-        formattedPhoneNumber = '+91' + formattedPhoneNumber;
-      }
+      const formattedPhoneNumber = phoneNumber.startsWith('+91') ? phoneNumber : '+91' + phoneNumber;
       const confirmation = await auth().signInWithPhoneNumber(formattedPhoneNumber);
       setVerificationId(confirmation.verificationId);
-      setIsPhoneModalVisible(false);
-      setIsVerificationModalVisible(true);
+      setIsModalVisible(true);
     } catch (err) {
-      showErrorAlert('Phone Login Error', err.message);
+      setMessage(err.message);
     }
   };
 
@@ -80,10 +65,10 @@ export default function LoginScreen({ navigation }) {
       const credential = auth.PhoneAuthProvider.credential(verificationId, verificationCode);
       await auth().signInWithCredential(credential);
       setMessage('Phone number login successful!');
-      setIsVerificationModalVisible(false);
-      // Navigate to the home screen or another screen
+      setIsModalVisible(false);
+      navigation.navigate('Home');
     } catch (err) {
-      showErrorAlert('Verification Error', err.message);
+      setMessage(err.message);
     }
   };
 
@@ -116,7 +101,7 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.buttonText}>Login with Google</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={handlePhoneLogin}>
+        <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={() => setIsModalVisible(true)}>
           <Text style={styles.buttonText}>Login with Phone Number</Text>
         </TouchableOpacity>
         <Text style={styles.message}>{message}</Text>
@@ -125,43 +110,31 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <Modal visible={isPhoneModalVisible} transparent={true} animationType="slide">
+      <Modal visible={isModalVisible} transparent={true} animationType="slide">
         <View style={styles.modalContainer}>
-          <View style={styles.modalInnerContainer}>
-            <TextInput
-              style={styles.inputBox}
-              placeholder="Enter Your Phone Number"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              keyboardType="phone-pad"
-            />
-            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={sendVerificationCode}>
-              <Text style={styles.buttonText}>Send Verification Code</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsPhoneModalVisible(false)}>
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={isVerificationModalVisible} transparent={true} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalInnerContainer}>
-            <TextInput
-              style={styles.inputBox}
-              placeholder="Enter Verification Code"
-              value={verificationCode}
-              onChangeText={setVerificationCode}
-              keyboardType="numeric"
-            />
-            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={confirmCode}>
-              <Text style={styles.buttonText}>Verify Code</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsVerificationModalVisible(false)}>
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            style={styles.inputBox}
+            placeholder="Enter Phone Number"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+          />
+          <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={handlePhoneLogin}>
+            <Text style={styles.buttonText}>Send OTP</Text>
+          </TouchableOpacity>
+          <TextInput
+            style={styles.inputBox}
+            placeholder="Enter Verification Code"
+            value={verificationCode}
+            onChangeText={setVerificationCode}
+            keyboardType="numeric"
+          />
+          <TouchableOpacity style={styles.button} onPress={confirmCode}>
+            <Text style={styles.buttonText}>Verify Code</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => setIsModalVisible(false)}>
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </KeyboardAvoidingView>
@@ -220,12 +193,21 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: '#4A90E2',
+    borderColor: '#4A90E2',
+    borderWidth: 2,
+    elevation: 2,
   },
   googleButton: {
     backgroundColor: '#DB4437',
+    borderColor: '#DB4437',
+    borderWidth: 2,
+    elevation: 2,
   },
   phoneButton: {
     backgroundColor: '#34b7f1',
+    borderColor: '#34b7f1',
+    borderWidth: 2,
+    elevation: 2,
   },
   buttonText: {
     color: '#fff',
@@ -258,18 +240,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     padding: 20,
-  },
-  modalInnerContainer: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: '90%',
-    maxWidth: 400,
-  },
-  modalButton: {
-    backgroundColor: '#4A90E2',
-  },
-  cancelButton: {
-    backgroundColor: '#DB4437',
   },
 });
