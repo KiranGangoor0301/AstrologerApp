@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; // For navigation
 import Sidebar from './Sidebar'; // Import the Sidebar component
+
+const { width: viewportWidth } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [hoveredSign, setHoveredSign] = useState(null);
   const navigation = useNavigation();
+  const scrollViewRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const zodiacSigns = [
     { name: 'Aries', image: require('./pictures/aries1.png') },
@@ -22,6 +26,25 @@ export default function HomeScreen() {
     { name: 'Aquarius', image: require('./pictures/aquarius.png') },
     { name: 'Pisces', image: require('./pictures/pisces.png') },
   ];
+
+  const bannerImages = [
+    require('./pictures/banner1.jpg'),
+    require('./pictures/banner2.jpeg'),
+    require('./pictures/banner3.png'),
+    require('./pictures/banner4.jpeg'),
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const nextIndex = (activeIndex + 1) % bannerImages.length;
+      setActiveIndex(nextIndex);
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ x: nextIndex * viewportWidth, animated: true });
+      }
+    }, 3000); // Change image every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [activeIndex]);
 
   const handleSignPress = (sign) => {
     navigation.navigate('ZodiacDetail', { sign: sign.name.toLowerCase() });
@@ -62,7 +85,22 @@ export default function HomeScreen() {
         <TouchableOpacity onPress={() => setIsSidebarVisible(true)} style={styles.hamburgerButton}>
           <Text style={styles.hamburgerText}>☰</Text>
         </TouchableOpacity>
-        <Image source={require('./pictures/astrology-banner.jpeg')} style={styles.banner} />
+        <ScrollView 
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          scrollEventThrottle={16}
+          onScroll={(event) => {
+            const contentOffsetX = event.nativeEvent.contentOffset.x;
+            const currentIndex = Math.floor(contentOffsetX / viewportWidth);
+            setActiveIndex(currentIndex);
+          }}
+        >
+          {bannerImages.map((image, index) => (
+            <Image key={index} source={image} style={styles.banner} />
+          ))}
+        </ScrollView>
         <Text style={styles.welcomeText}>Welcome to Your Astrology App</Text>
         <Text style={styles.dailyHoroscopeTitle}>Daily Horoscope</Text>
         <Text style={styles.dailyHoroscopeText}>
@@ -102,7 +140,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   banner: {
-    width: '100%',
+    width: viewportWidth,
     height: 200,
     borderRadius: 10,
     marginBottom: 20,
@@ -167,7 +205,6 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
     padding: 10,
-    // backgroundColor: '#4A90E2',
     borderRadius: 30,
     zIndex: 1001,
     width: 50,

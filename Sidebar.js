@@ -1,26 +1,19 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, Animated, Image } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, Modal, FlatList, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
 
 const Sidebar = ({ isVisible, onClose }) => {
   const navigation = useNavigation();
-  const translateX = useRef(new Animated.Value(-300)).current; // Sidebar width
-
-  useEffect(() => {
-    Animated.timing(translateX, {
-      toValue: isVisible ? 0 : -300,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [isVisible]);
 
   const menuItems = [
-    { title: 'Profile', screen: 'Profile' },
-    { title: 'Settings', screen: 'Settings' },
-    { title: 'Help Us', screen: 'HelpUs' },
-    { title: 'About Us', screen: 'AboutUs' },
-    { title: 'Contact', screen: 'Contact' },
-    { title: 'Logout', action: () => handleLogout() }
+    { title: 'Login', screen: 'Login', key: 'login' },
+    { title: 'Profile', screen: 'Profile', key: 'profile' },
+    { title: 'Settings', screen: 'Settings', key: 'settings' },
+    { title: 'Help Us', screen: 'HelpUs', key: 'helpus' },
+    { title: 'About Us', screen: 'AboutUs', key: 'aboutus' },
+    { title: 'Contact', screen: 'Contact', key: 'contact' },
+    { title: 'Logout', key: 'logout' }
   ];
 
   const handleNavigate = (screen) => {
@@ -28,20 +21,28 @@ const Sidebar = ({ isVisible, onClose }) => {
     onClose();
   };
 
-  const handleLogout = () => {
-    // Add logout functionality here
-    onClose();
+  const handleLogout = async () => {
+    try {
+      await auth().signOut();
+      navigation.navigate('Login'); // or 'RegisterScreen' if you want to navigate to the register screen
+      onClose();
+    } catch (error) {
+      console.error('Logout Error:', error);
+    }
+  };
+
+  const handleMenuItemPress = (item) => {
+    if (item.key === 'logout') {
+      handleLogout();
+    } else {
+      handleNavigate(item.screen);
+    }
   };
 
   return (
-    <Modal
-      visible={isVisible}
-      transparent={true}
-      animationType="none"
-      onRequestClose={onClose}
-    >
+    <Modal visible={isVisible} transparent={true} animationType="slide">
       <View style={styles.sidebarContainer}>
-        <Animated.View style={[styles.sidebarContent, { transform: [{ translateX }] }]}>
+        <View style={styles.sidebarContent}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
@@ -51,23 +52,23 @@ const Sidebar = ({ isVisible, onClose }) => {
           </View>
           <FlatList
             data={menuItems}
-            keyExtractor={(item) => item.title}
+            keyExtractor={(item) => item.key}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.menuItem}
-                onPress={() => item.action ? item.action() : handleNavigate(item.screen)}
+                onPress={() => handleMenuItemPress(item)}
               >
                 <Text style={styles.menuText}>{item.title}</Text>
               </TouchableOpacity>
             )}
           />
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = ({
   sidebarContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -94,8 +95,6 @@ const styles = StyleSheet.create({
     right: 4,
     zIndex: 1,
     padding: 10,
-    // backgroundColor: '#E0E0E0',
-    // borderRadius: 50,
   },
   closeButtonText: {
     fontSize: 24,

@@ -16,12 +16,14 @@ import Sidebar from './Sidebar';
 
 const Stack = createStackNavigator();
 
-function MainStackNavigator() {
+function MainStackNavigator({ openSidebar }) {
   return (
     <Stack.Navigator initialRouteName="Login">
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Home">
+        {props => <HomeScreen {...props} openSidebar={openSidebar} />}
+      </Stack.Screen>
       <Stack.Screen name="ZodiacDetail" component={ZodiacDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
@@ -56,7 +58,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <View style={{ flex: 1 }}>
-        <MainStackNavigator />
+        <MainStackNavigator openSidebar={openSidebar} />
         {sidebarOpen && <Sidebar isVisible={sidebarOpen} onClose={closeSidebar} />}
       </View>
     </NavigationContainer>
