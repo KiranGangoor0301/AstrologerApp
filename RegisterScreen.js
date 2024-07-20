@@ -1,27 +1,34 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import storage from '@react-native-firebase/storage';
+import { launchImageLibrary } from 'react-native-image-picker'; // For picking profile pictures
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-  const [profilePicture, setProfilePicture] = useState(null); // Handle profile picture
+  const [profilePicture, setProfilePicture] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleRegister = async () => {
+    // Validate inputs
+    if (!email || !password || !name || !age) {
+      setErrorMessage('All fields are required.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
+    setErrorMessage('');
 
     try {
-      // Register the user
       const userCredential = await auth().createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
 
-      // Upload profile picture if exists
       if (profilePicture) {
         const reference = storage().ref(`profilePictures/${user.uid}`);
         await reference.putFile(profilePicture);
@@ -38,15 +45,30 @@ export default function RegisterScreen({ navigation }) {
       navigation.navigate('Home');
     } catch (error) {
       console.error('Registration Error:', error.message);
-      setMessage(`Registration failed: ${error.message}`);
-      Alert.alert('Registration Error', error.message);
+      setErrorMessage(`Registration failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
+  const pickImage = () => {
+    launchImageLibrary({ mediaType: 'photo' }, (response) => {
+      if (!response.didCancel && !response.errorMessage) {
+        setProfilePicture(response.assets[0].uri);
+      }
+    });
+  };
+
   return (
     <View style={styles.container}>
+      <Text style={styles.header}>Register</Text>
+      <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
+        {profilePicture ? (
+          <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+        ) : (
+          <Text style={styles.imagePickerText}>Pick Profile Picture</Text>
+        )}
+      </TouchableOpacity>
       <TextInput
         style={styles.inputBox}
         placeholder="Enter Your Name"
@@ -75,7 +97,6 @@ export default function RegisterScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
-      {/* Add a button or functionality to pick a profile picture */}
       <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
         {loading ? (
           <ActivityIndicator size="small" color="#fff" />
@@ -83,7 +104,8 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.buttonText}>Register</Text>
         )}
       </TouchableOpacity>
-      <Text style={styles.message}>{message}</Text>
+      {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
+      {message ? <Text style={styles.message}>{message}</Text> : null}
     </View>
   );
 }
@@ -94,33 +116,80 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#E8F0F2', // Light background color
+  },
+  header: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#333',
+  },
+  imagePicker: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: '#4A90E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    elevation: 4,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  imagePickerText: {
+    fontSize: 16,
+    color: '#4A90E2',
+    fontWeight: 'bold',
   },
   inputBox: {
     width: '100%',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ddd',
-    marginVertical: 10,
+    marginVertical: 12,
     padding: 15,
     backgroundColor: '#fff',
+    elevation: 2,
+    fontSize: 16,
   },
   button: {
     borderRadius: 10,
-    marginVertical: 10,
+    marginVertical: 15,
     width: '100%',
     padding: 15,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#4A90E2',
+    elevation: 5,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: 'bold',
   },
-  message: {
-    color: 'red',
+  errorMessage: {
+    color: '#FF4C4C',
     textAlign: 'center',
     marginVertical: 10,
+    fontSize: 16,
+    backgroundColor: '#FCE4E4',
+    padding: 10,
+    borderRadius: 5,
+    width: '100%',
+  },
+  message: {
+    color: '#4CAF50',
+    textAlign: 'center',
+    marginVertical: 10,
+    fontSize: 16,
+    backgroundColor: '#E8F5E9',
+    padding: 10,
+    borderRadius: 5,
+    width: '100%',
   },
 });
