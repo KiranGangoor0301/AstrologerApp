@@ -1,10 +1,10 @@
-// HomeScreen.js
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import auth from '@react-native-firebase/auth'; // Import Firebase Authentication
+import { useNavigation } from '@react-navigation/native'; // For navigation
+import Sidebar from './Sidebar'; // Import the Sidebar component
 
 export default function HomeScreen() {
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const navigation = useNavigation();
 
   const zodiacSigns = [
@@ -24,6 +24,7 @@ export default function HomeScreen() {
 
   const handleSignPress = (sign) => {
     navigation.navigate('ZodiacDetail', { sign: sign.name.toLowerCase() });
+    setIsSidebarVisible(false); // Close the sidebar when navigating
   };
 
   const handleLogout = () => {
@@ -54,38 +55,39 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity onPress={() => navigation.openDrawer()} style={styles.menuButton}>
-        <Text style={styles.menuText}>☰ Menu</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-      <Image source={require('./pictures/astrology-banner.jpeg')} style={styles.banner} />
-      <Text style={styles.welcomeText}>Welcome to Your Astrology App</Text>
-      <Text style={styles.dailyHoroscopeTitle}>Daily Horoscope</Text>
-      <Text style={styles.dailyHoroscopeText}>
-        "Today is a great day to embrace new opportunities and face challenges with confidence."
-      </Text>
-      <Text style={styles.zodiacTitle}>Zodiac Signs</Text>
-      <View style={styles.zodiacContainer}>
-        {zodiacSigns.map((sign, index) => (
-          <TouchableOpacity key={index} style={styles.signCard} onPress={() => handleSignPress(sign)}>
-            <Image source={sign.image} style={styles.signImage} />
-            <Text style={styles.signName}>{sign.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <Sidebar isVisible={isSidebarVisible} onClose={() => setIsSidebarVisible(false)} />
+      <ScrollView contentContainerStyle={styles.content}>
+        <TouchableOpacity onPress={() => setIsSidebarVisible(true)} style={styles.hamburgerButton}><Text style={styles.hamburgerText}>☰</Text></TouchableOpacity>
+        <Image source={require('./pictures/astrology-banner.jpeg')} style={styles.banner} />
+        <Text style={styles.welcomeText}>Welcome to Your Astrology App</Text>
+        <Text style={styles.dailyHoroscopeTitle}>Daily Horoscope</Text>
+        <Text style={styles.dailyHoroscopeText}>
+          "Today is a great day to embrace new opportunities and face challenges with confidence."
+        </Text>
+        <Text style={styles.zodiacTitle}>Zodiac Signs</Text>
+        <View style={styles.zodiacContainer}>
+          {zodiacSigns.map((sign, index) => (
+            <TouchableOpacity key={index} style={styles.signCard} onPress={() => handleSignPress(sign)}>
+              <Image source={sign.image} style={styles.signImage} />
+              <Text style={styles.signName}>{sign.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
+    position: 'relative',
+    backgroundColor: '#E0F7FA', // Background color of the container
+  },
+  content: {
     padding: 20,
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#E0F7FA', // Background color of the content area
   },
   banner: {
     width: '100%',
@@ -120,6 +122,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
+  horizontalLine: {
+    width: '100%',
+    height: 4,
+    backgroundColor: '#000', // Black color for horizontal lines
+    marginVertical: 20,
+  },
   zodiacContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -139,26 +147,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  menuButton: {
-    alignSelf: 'flex-start',
-    padding: 10,
-    backgroundColor: '#4A90E2',
-    borderRadius: 5,
-    marginBottom: 20,
+  hamburgerButton: {
+    position: 'absolute',
+    top: 4, // Adjust this value to position it higher or lower
+    // left: 1,
+    padding: 15,
+    // backgroundColor: '#4A90E2',
+    borderRadius: 30,
+    zIndex: 1001,
+    width: 70,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  menuText: {
+  hamburgerText: {
+    fontSize: 30,
     color: '#fff',
-    fontSize: 16,
-  },
-  logoutButton: {
-    alignSelf: 'flex-end',
-    padding: 10,
-    backgroundColor: '#E94E77',
-    borderRadius: 5,
-    marginBottom: 20,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 16,
   },
 });

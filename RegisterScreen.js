@@ -1,24 +1,65 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import auth from '@react-native-firebase/auth';
+import storage from '@react-native-firebase/storage';
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null); // Handle profile picture
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
   const handleRegister = async () => {
+    setLoading(true);
+    setMessage('');
+
     try {
-      await auth().createUserWithEmailAndPassword(email, password);
+      // Register the user
+      const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+
+      // Upload profile picture if exists
+      if (profilePicture) {
+        const reference = storage().ref(`profilePictures/${user.uid}`);
+        await reference.putFile(profilePicture);
+        const profilePictureUrl = await reference.getDownloadURL();
+        await user.updateProfile({
+          displayName: name,
+          photoURL: profilePictureUrl,
+        });
+      } else {
+        await user.updateProfile({ displayName: name });
+      }
+
       setMessage('Registration successful');
       navigation.navigate('Home');
-    } catch (err) {
-      setMessage(err.message);
+    } catch (error) {
+      console.error('Registration Error:', error.message);
+      setMessage(`Registration failed: ${error.message}`);
+      Alert.alert('Registration Error', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
+      <TextInput
+        style={styles.inputBox}
+        placeholder="Enter Your Name"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.inputBox}
+        placeholder="Enter Your Age"
+        value={age}
+        onChangeText={setAge}
+        keyboardType="numeric"
+      />
       <TextInput
         style={styles.inputBox}
         placeholder="Enter Your Email"
@@ -34,8 +75,13 @@ export default function RegisterScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
+      {/* Add a button or functionality to pick a profile picture */}
+      <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Register</Text>
+        )}
       </TouchableOpacity>
       <Text style={styles.message}>{message}</Text>
     </View>

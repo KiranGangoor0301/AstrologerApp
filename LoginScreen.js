@@ -16,7 +16,7 @@ export default function LoginScreen({ navigation }) {
 
   useEffect(() => {
     GoogleSignin.configure({
-      // Your webClientId here (only if using iOS or web)
+      webClientId: 'YOUR_WEB_CLIENT_ID', // Replace with your web client ID
     });
   }, []);
 
@@ -28,8 +28,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
     try {
       await auth().signInWithEmailAndPassword(email, password);
-      setMessage('Login successful');
-      navigation.navigate('Home');  // Redirect to home screen
+      navigation.navigate('Home');
     } catch (err) {
       showErrorAlert('Login Error', err.message);
     } finally {
@@ -44,8 +43,7 @@ export default function LoginScreen({ navigation }) {
       const { idToken } = await GoogleSignin.signIn();
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       await auth().signInWithCredential(googleCredential);
-      setMessage('Login with Google successful!');
-      navigation.navigate('Home');  // Redirect to home screen
+      navigation.navigate('Home');
     } catch (error) {
       let errorMessage = 'An error occurred';
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -70,10 +68,7 @@ export default function LoginScreen({ navigation }) {
   const sendVerificationCode = async () => {
     setLoading(true);
     try {
-      let formattedPhoneNumber = phoneNumber;
-      if (!formattedPhoneNumber.startsWith('+91')) {
-        formattedPhoneNumber = '+91' + formattedPhoneNumber;
-      }
+      const formattedPhoneNumber = phoneNumber.startsWith('+91') ? phoneNumber : '+91' + phoneNumber;
       const confirmation = await auth().signInWithPhoneNumber(formattedPhoneNumber);
       setVerificationId(confirmation.verificationId);
       setIsPhoneModalVisible(false);
@@ -90,9 +85,7 @@ export default function LoginScreen({ navigation }) {
     try {
       const credential = auth.PhoneAuthProvider.credential(verificationId, verificationCode);
       await auth().signInWithCredential(credential);
-      setMessage('Phone number login successful!');
-      setIsVerificationModalVisible(false);
-      navigation.navigate('Home');  // Redirect to home screen
+      navigation.navigate('Home');
     } catch (err) {
       showErrorAlert('Verification Error', err.message);
     } finally {
@@ -220,73 +213,69 @@ const styles = StyleSheet.create({
   },
   inputBox: {
     width: '100%',
-    borderRadius: 10,
-    borderWidth: 1,
+    height: 40,
     borderColor: '#ddd',
-    marginVertical: 10,
-    padding: 15,
-    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
   button: {
-    borderRadius: 10,
-    marginVertical: 10,
     width: '100%',
-    padding: 15,
+    height: 40,
+    borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 10,
   },
   loginButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#1E90FF',
   },
   googleButton: {
     backgroundColor: '#DB4437',
   },
   phoneButton: {
-    backgroundColor: '#34b7f1',
+    backgroundColor: '#34A853',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
   },
   googleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
   },
   googleLogo: {
-    width: 24,
-    height: 24,
+    width: 20,
+    height: 20,
     marginRight: 10,
   },
-  message: {
-    color: 'red',
-    textAlign: 'center',
-    marginVertical: 10,
-  },
   link: {
-    color: '#4A90E2',
-    textAlign: 'center',
+    color: '#1E90FF',
+    marginTop: 15,
+    textDecorationLine: 'underline',
+  },
+  message: {
     marginTop: 10,
-    fontSize: 16,
+    color: 'red',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 20,
   },
   modalInnerContainer: {
-    backgroundColor: '#fff',
+    width: '80%',
     padding: 20,
+    backgroundColor: '#fff',
     borderRadius: 10,
-    width: '90%',
-    maxWidth: 400,
+    alignItems: 'center',
   },
   modalButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#1E90FF',
   },
   cancelButton: {
-    backgroundColor: '#DB4437',
+    backgroundColor: '#FF6347',
   },
 });

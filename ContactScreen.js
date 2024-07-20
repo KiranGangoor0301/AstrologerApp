@@ -1,15 +1,13 @@
-// ContactScreen.js
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function ContactScreen() {
+const ContactScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Contact Us</Text>
-      <Text style={styles.content}>This is the Contact Us page.</Text>
+      <Text style={styles.title}>Contact Screen</Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -21,10 +19,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  content: {
-    fontSize: 16,
-    color: '#333',
   },
 });
+
+export default ContactScreen;
