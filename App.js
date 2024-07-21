@@ -1,18 +1,25 @@
 import 'react-native-gesture-handler';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Animated } from 'react-native';
+import Toast from 'react-native-toast-message'; // Import toast library
+
 import LoginScreen from './LoginScreen';
 import RegisterScreen from './RegisterScreen';
 import HomeScreen from './HomeScreen';
-import ZodiacDetailScreen from './ZodiacDetailScreen';
+import ZodiacInfoScreen from './ZodiacInfoScreen';
 import ProfileScreen from './ProfileScreen';
 import SettingsScreen from './SettingsScreen';
 import HelpUsScreen from './HelpUsScreen';
 import AboutUsScreen from './AboutUsScreen';
 import ContactScreen from './ContactScreen';
+import ConsultationScreen from './ConsultationScreen';
+import ArticlesScreen from './ArticlesScreen';
+import ToolsScreen from './ToolsScreen';
+import NotificationsScreen from './NotificationsScreen';
 import Sidebar from './Sidebar';
+import { requestUserPermission } from './NotificationService'; // Ensure correct path
 
 const Stack = createStackNavigator();
 
@@ -24,7 +31,11 @@ function MainStackNavigator({ openSidebar }) {
       <Stack.Screen name="Home">
         {props => <HomeScreen {...props} openSidebar={openSidebar} />}
       </Stack.Screen>
-      <Stack.Screen name="ZodiacDetail" component={ZodiacDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ZodiacInfo" component={ZodiacInfoScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Consultation" component={ConsultationScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Articles" component={ArticlesScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Tools" component={ToolsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="HelpUs" component={HelpUsScreen} options={{ headerShown: false }} />
@@ -36,7 +47,11 @@ function MainStackNavigator({ openSidebar }) {
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const translateX = useRef(new Animated.Value(-300)).current;
+  const translateX = useRef(new Animated.Value(-300)).current; // Start hidden to the left
+
+  useEffect(() => {
+    requestUserPermission(); // Request permissions on app start
+  }, []);
 
   const openSidebar = () => {
     setSidebarOpen(true);
@@ -59,7 +74,12 @@ export default function App() {
     <NavigationContainer>
       <View style={{ flex: 1 }}>
         <MainStackNavigator openSidebar={openSidebar} />
-        {sidebarOpen && <Sidebar isVisible={sidebarOpen} onClose={closeSidebar} />}
+        {sidebarOpen && (
+          <Animated.View style={{ transform: [{ translateX }] }}>
+            <Sidebar isVisible={sidebarOpen} onClose={closeSidebar} />
+          </Animated.View>
+        )}
+        <Toast ref={(ref) => Toast.setRef(ref)} />
       </View>
     </NavigationContainer>
   );

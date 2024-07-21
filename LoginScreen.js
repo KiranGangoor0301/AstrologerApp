@@ -12,7 +12,9 @@ export default function LoginScreen({ navigation }) {
   const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
   const [isVerificationModalVisible, setIsVerificationModalVisible] = useState(false);
   const [verificationId, setVerificationId] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [loadingPhone, setLoadingPhone] = useState(false);
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -25,19 +27,19 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    setLoading(true);
+    setLoadingLogin(true);
     try {
       await auth().signInWithEmailAndPassword(email, password);
       navigation.navigate('Home');
     } catch (err) {
       showErrorAlert('Login Error', err.message);
     } finally {
-      setLoading(false);
+      setLoadingLogin(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
+    setLoadingGoogle(true);
     try {
       await GoogleSignin.hasPlayServices();
       const { idToken } = await GoogleSignin.signIn();
@@ -57,7 +59,7 @@ export default function LoginScreen({ navigation }) {
       }
       showErrorAlert('Google Login Error', errorMessage);
     } finally {
-      setLoading(false);
+      setLoadingGoogle(false);
     }
   };
 
@@ -66,7 +68,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   const sendVerificationCode = async () => {
-    setLoading(true);
+    setLoadingPhone(true);
     try {
       const formattedPhoneNumber = phoneNumber.startsWith('+91') ? phoneNumber : '+91' + phoneNumber;
       const confirmation = await auth().signInWithPhoneNumber(formattedPhoneNumber);
@@ -76,12 +78,12 @@ export default function LoginScreen({ navigation }) {
     } catch (err) {
       showErrorAlert('Phone Login Error', err.message);
     } finally {
-      setLoading(false);
+      setLoadingPhone(false);
     }
   };
 
   const confirmCode = async () => {
-    setLoading(true);
+    setLoadingPhone(true);
     try {
       const credential = auth.PhoneAuthProvider.credential(verificationId, verificationCode);
       await auth().signInWithCredential(credential);
@@ -89,7 +91,7 @@ export default function LoginScreen({ navigation }) {
     } catch (err) {
       showErrorAlert('Verification Error', err.message);
     } finally {
-      setLoading(false);
+      setLoadingPhone(false);
     }
   };
 
@@ -115,17 +117,17 @@ export default function LoginScreen({ navigation }) {
           secureTextEntry
           accessibilityLabel="Password input"
         />
-        <TouchableOpacity style={[styles.button, styles.loginButton]} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
+        <TouchableOpacity style={[styles.button, styles.loginButton]} onPress={handleLogin} disabled={loadingLogin || loadingGoogle || loadingPhone}>
+          {loadingLogin ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.googleButton]} onPress={handleGoogleLogin} disabled={loading}>
+        <TouchableOpacity style={[styles.button, styles.googleButton]} onPress={handleGoogleLogin} disabled={loadingLogin || loadingGoogle || loadingPhone}>
           <View style={styles.googleContainer}>
             <Image source={require('./pictures/google-logo.png')} style={styles.googleLogo} />
-            {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login with Google</Text>}
+            {loadingGoogle ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login with Google</Text>}
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={handlePhoneLogin} disabled={loading}>
-          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login with Phone Number</Text>}
+        <TouchableOpacity style={[styles.button, styles.phoneButton]} onPress={handlePhoneLogin} disabled={loadingLogin || loadingGoogle || loadingPhone}>
+          {loadingPhone ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login with Phone Number</Text>}
         </TouchableOpacity>
         <Text style={styles.message}>{message}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -144,10 +146,10 @@ export default function LoginScreen({ navigation }) {
               keyboardType="phone-pad"
               accessibilityLabel="Phone number input"
             />
-            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={sendVerificationCode} disabled={loading}>
-              {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Send Verification Code</Text>}
+            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={sendVerificationCode} disabled={loadingPhone}>
+              {loadingPhone ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Send Verification Code</Text>}
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsPhoneModalVisible(false)} disabled={loading}>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsPhoneModalVisible(false)} disabled={loadingPhone}>
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -165,10 +167,10 @@ export default function LoginScreen({ navigation }) {
               keyboardType="numeric"
               accessibilityLabel="Verification code input"
             />
-            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={confirmCode} disabled={loading}>
-              {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Verify Code</Text>}
+            <TouchableOpacity style={[styles.button, styles.modalButton]} onPress={confirmCode} disabled={loadingPhone}>
+              {loadingPhone ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Verify Code</Text>}
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsVerificationModalVisible(false)} disabled={loading}>
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setIsVerificationModalVisible(false)} disabled={loadingPhone}>
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>

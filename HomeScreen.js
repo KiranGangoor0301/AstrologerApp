@@ -1,31 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // For navigation
+import { View, Text, StyleSheet, Image, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import Footer from './Footer';
+import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import Sidebar from './Sidebar'; // Import the Sidebar component
 
 const { width: viewportWidth } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [hoveredSign, setHoveredSign] = useState(null);
-  const navigation = useNavigation();
   const scrollViewRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
-
-  const zodiacSigns = [
-    { name: 'Aries', image: require('./pictures/aries1.png') },
-    { name: 'Taurus', image: require('./pictures/taurus.png') },
-    { name: 'Gemini', image: require('./pictures/gemini.png') },
-    { name: 'Cancer', image: require('./pictures/cancer.png') },
-    { name: 'Leo', image: require('./pictures/leo.png') },
-    { name: 'Virgo', image: require('./pictures/virgo.png') },
-    { name: 'Libra', image: require('./pictures/libra.png') },
-    { name: 'Scorpio', image: require('./pictures/scorpio.png') },
-    { name: 'Sagittarius', image: require('./pictures/sagittarius.png') },
-    { name: 'Capricorn', image: require('./pictures/capricorn.png') },
-    { name: 'Aquarius', image: require('./pictures/aquarius.png') },
-    { name: 'Pisces', image: require('./pictures/pisces.png') },
-  ];
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const translateX = useSharedValue(-300);
 
   const bannerImages = [
     require('./pictures/banner1.jpg'),
@@ -41,50 +26,25 @@ export default function HomeScreen() {
       if (scrollViewRef.current) {
         scrollViewRef.current.scrollTo({ x: nextIndex * viewportWidth, animated: true });
       }
-    }, 3000); // Change image every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [activeIndex]);
 
-  const handleSignPress = (sign) => {
-    navigation.navigate('ZodiacDetail', { sign: sign.name.toLowerCase() });
-    setIsSidebarVisible(false); // Close the sidebar when navigating
+  const toggleSidebar = () => {
+    setIsSidebarVisible(!isSidebarVisible);
+    translateX.value = isSidebarVisible ? -300 : 0;
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Logout",
-          onPress: () => {
-            auth()
-              .signOut()
-              .then(() => {
-                navigation.navigate('Login');
-              })
-              .catch(error => {
-                console.error('Sign Out Error', error);
-              });
-          }
-        }
-      ],
-      { cancelable: false }
-    );
-  };
+  const animatedSidebarStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
 
   return (
     <View style={styles.container}>
-      <Sidebar isVisible={isSidebarVisible} onClose={() => setIsSidebarVisible(false)} />
-      <ScrollView contentContainerStyle={styles.content}>
-        <TouchableOpacity onPress={() => setIsSidebarVisible(true)} style={styles.hamburgerButton}>
-          <Text style={styles.hamburgerText}>☰</Text>
-        </TouchableOpacity>
+      <View style={styles.bannerContainer}>
         <ScrollView 
           ref={scrollViewRef}
           horizontal
@@ -101,31 +61,69 @@ export default function HomeScreen() {
             <Image key={index} source={image} style={styles.banner} />
           ))}
         </ScrollView>
-        <Text style={styles.welcomeText}>Welcome to Your Astrology App</Text>
-        <Text style={styles.dailyHoroscopeTitle}>Daily Horoscope</Text>
-        <Text style={styles.dailyHoroscopeText}>
-          "Today is a great day to embrace new opportunities and face challenges with confidence."
-        </Text>
-        <Text style={styles.zodiacTitle}>Zodiac Signs</Text>
-        <View style={styles.zodiacContainer}>
-          {zodiacSigns.map((sign, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={[
-                styles.signCard, 
-                hoveredSign === index && styles.signCardHovered
-              ]}
-              onPress={() => handleSignPress(sign)}
-              activeOpacity={0.8}
-              onMouseEnter={() => setHoveredSign(index)}
-              onMouseLeave={() => setHoveredSign(null)}
-            >
-              <Image source={sign.image} style={styles.signImage} />
-              <Text style={styles.signName}>{sign.name}</Text>
-            </TouchableOpacity>
-          ))}
+        {!isSidebarVisible && (
+          <TouchableOpacity onPress={toggleSidebar} style={styles.hamburgerButton}>
+            <Text style={styles.hamburgerText}>☰</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Daily Horoscope (User's Zodiac)</Text>
+          <Text style={styles.sectionContent}>
+            "Today is a great day to embrace new opportunities and face challenges with confidence."
+          </Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Upcoming Events/Consultations</Text>
+          <Text style={styles.sectionContent}>Details about upcoming events and consultations.</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Personalized Recommendations</Text>
+          <Text style={styles.sectionContent}>Customized recommendations for the user based on their preferences.</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Featured Articles</Text>
+          <Text style={styles.sectionContent}>Articles on various astrology topics that are featured.</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Trending Topics</Text>
+          <Text style={styles.sectionContent}>Current trending topics in the astrology community.</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Astrology Tools</Text>
+          <Text style={styles.sectionContent}>Tools and resources available for astrology enthusiasts.</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Daily Tips</Text>
+          <Text style={styles.sectionContent}>Daily astrology tips to enhance the user's experience.</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Featured Astrologers</Text>
+          <Text style={styles.sectionContent}>Profiles of featured astrologers and their specialties.</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Book a Consultation</Text>
+          <TouchableOpacity style={styles.button} onPress={() => { /* Navigate to consultation screen */ }}>
+            <Text style={styles.buttonText}>Book Now</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Sidebar */}
+      <Animated.View style={[styles.sidebar, animatedSidebarStyle]}>
+        <Sidebar isVisible={isSidebarVisible} onClose={toggleSidebar} />
+      </Animated.View>
+
+      <Footer /> 
     </View>
   );
 }
@@ -133,87 +131,74 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    position: 'relative',
     backgroundColor: '#E0F7FA',
   },
-  content: {
-    padding: 20,
+  bannerContainer: {
+    position: 'relative',
+    width: viewportWidth,
   },
   banner: {
     width: viewportWidth,
     height: 200,
     borderRadius: 10,
-    marginBottom: 20,
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  dailyHoroscopeTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#4A90E2',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  dailyHoroscopeText: {
-    fontSize: 16,
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  zodiacTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#4A90E2',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  zodiacContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  signCard: {
-    alignItems: 'center',
-    width: '30%',
-    marginBottom: 20,
-    backgroundColor: '#FFF',
-    padding: 10,
-    borderRadius: 10,
-    elevation: 5,
-    transition: 'all 0.3s ease-in-out',
-  },
-  signCardHovered: {
-    transform: 'scale(1.05)',
-    backgroundColor: '#f0f0f0',
-  },
-  signImage: {
-    width: 60,
-    height: 60,
-    marginBottom: 10,
-  },
-  signName: {
-    fontSize: 16,
-    color: '#333',
   },
   hamburgerButton: {
     position: 'absolute',
-    top: 10,
+    top: 20,
     left: 10,
     padding: 10,
     borderRadius: 30,
-    zIndex: 1001,
+    zIndex: 1000,
     width: 50,
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000',
   },
   hamburgerText: {
-    fontSize: 24,
+    fontSize: 30,
     color: '#fff',
+  },
+  content: {
+    padding: 20,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  sectionContent: {
+    fontSize: 16,
+    color: '#555',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 20,
+  },
+  button: {
+    backgroundColor: '#4A90E2',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  sidebar: {
+    width: 300, // Width of the sidebar
+    height: '100%',
+    backgroundColor: 'transparent',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 999,
   },
 });

@@ -1,13 +1,24 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, Image } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
+import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
 const Sidebar = ({ isVisible, onClose }) => {
   const navigation = useNavigation();
+  const translateX = useSharedValue(-300);
+
+  React.useEffect(() => {
+    translateX.value = isVisible ? 0 : -300;
+  }, [isVisible]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
 
   const menuItems = [
-    { title: 'Login', screen: 'Login', key: 'login' },
     { title: 'Profile', screen: 'Profile', key: 'profile' },
     { title: 'Settings', screen: 'Settings', key: 'settings' },
     { title: 'Help Us', screen: 'HelpUs', key: 'helpus' },
@@ -24,7 +35,7 @@ const Sidebar = ({ isVisible, onClose }) => {
   const handleLogout = async () => {
     try {
       await auth().signOut();
-      navigation.navigate('Login'); // or 'RegisterScreen' if you want to navigate to the register screen
+      navigation.navigate('Login');
       onClose();
     } catch (error) {
       console.error('Logout Error:', error);
@@ -40,61 +51,60 @@ const Sidebar = ({ isVisible, onClose }) => {
   };
 
   return (
-    <Modal visible={isVisible} transparent={true} animationType="slide">
-      <View style={styles.sidebarContainer}>
-        <View style={styles.sidebarContent}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>✕</Text>
-          </TouchableOpacity>
-          <View style={styles.profileSection}>
-            <Image source={require('./pictures/profile.png')} style={styles.profileImage} />
-            <Text style={styles.profileName}>John Doe</Text>
-          </View>
-          <FlatList
-            data={menuItems}
-            keyExtractor={(item) => item.key}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => handleMenuItemPress(item)}
-              >
-                <Text style={styles.menuText}>{item.title}</Text>
-              </TouchableOpacity>
-            )}
-          />
+    <Animated.View style={[styles.sidebarContainer, animatedStyle]}>
+      <View style={styles.sidebarContent}>
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Text style={styles.closeButtonText}>✕</Text>
+        </TouchableOpacity>
+        <View style={styles.profileSection}>
+          <Image source={require('./pictures/profile.png')} style={styles.profileImage} />
+          <Text style={styles.profileName}>John Doe</Text>
         </View>
+        <FlatList
+          data={menuItems}
+          keyExtractor={(item) => item.key}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => handleMenuItemPress(item)}
+            >
+              <Text style={styles.menuText}>{item.title}</Text>
+            </TouchableOpacity>
+          )}
+        />
       </View>
-    </Modal>
+    </Animated.View>
   );
 };
 
-const styles = ({
+const styles = StyleSheet.create({
   sidebarContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'flex-start',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  sidebarContent: {
-    width: 300,
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
     position: 'absolute',
     top: 0,
     left: 0,
+    width: 300,
     height: '100%',
+    zIndex: 1000,
+  },
+  sidebarContent: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopRightRadius: 15,
+    borderBottomRightRadius: 15,
+    justifyContent: 'center',
   },
   closeButton: {
     position: 'absolute',
-    top: 2,
-    right: 4,
-    zIndex: 1,
+    top: 10,
+    right: 10,
     padding: 10,
+    zIndex: 1,
   },
   closeButtonText: {
     fontSize: 24,
