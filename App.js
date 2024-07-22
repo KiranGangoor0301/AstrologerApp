@@ -22,8 +22,10 @@ import ToolsScreen from './ToolsScreen';
 import NotificationsScreen from './NotificationsScreen';
 import Sidebar from './Sidebar';
 import BookingDetailsScreen from './BookingDetailsScreen';
+import PoseDetailScreen from './PoseDetailScreen'
 import PaymentScreen from './PaymentScreen';
 import { requestUserPermission } from './NotificationService'; // Ensure correct path
+
 
 const Stack = createStackNavigator();
 
@@ -43,6 +45,21 @@ function MainStackNavigator({ openSidebar }) {
       <Stack.Screen name="Articles" component={ArticlesScreen} options={{ headerShown: false }} />
       <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Tools" component={ToolsScreen} options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="PoseDetail" 
+        component={PoseDetailScreen} 
+        options={({ route }) => ({ 
+          title: `Details of: ${route.params?.pose?.english_name || 'Details'}`,
+          headerTitleAlign: 'center',
+          headerStyle: {
+            backgroundColor: '#007BFF',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        })}
+      />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
