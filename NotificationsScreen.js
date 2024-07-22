@@ -115,7 +115,7 @@ export default function NotificationsScreen({ navigation }) {
     { title: 'Zodiac Info', screen: 'ZodiacInfo', image: require('./pictures/astro.jpeg') },
     { title: 'Consultation', screen: 'Consultation', image: require('./pictures/consultation.jpeg') },
     { title: 'Articles', screen: 'Articles', image: require('./pictures/article.jpg') },
-    { title: 'Tools', screen: 'Tools', image: require('./pictures/tools.jpeg') },
+    { title: 'Yoga', screen: 'Tools', image: require('./pictures/yoga.png') },
     { title: 'Notifications', screen: 'Notifications', image: require('./pictures/notification.jpeg') }
   ];
 
