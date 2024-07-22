@@ -9,16 +9,20 @@ import LoginScreen from './LoginScreen';
 import RegisterScreen from './RegisterScreen';
 import HomeScreen from './HomeScreen';
 import ZodiacInfoScreen from './ZodiacInfoScreen';
+import ZodiacDetailScreen from './ZodiacDetailScreen'; // Import ZodiacDetailScreen
 import ProfileScreen from './ProfileScreen';
 import SettingsScreen from './SettingsScreen';
 import HelpUsScreen from './HelpUsScreen';
 import AboutUsScreen from './AboutUsScreen';
 import ContactScreen from './ContactScreen';
 import ConsultationScreen from './ConsultationScreen';
-import ArticlesScreen from './ArticlesScreen';
+import ArticlesScreen from './ArticlesScreen'; // Ensure the correct path
+import ArticleDetailScreen from './ArticleDetailScreen'; // Ensure the correct path
 import ToolsScreen from './ToolsScreen';
 import NotificationsScreen from './NotificationsScreen';
 import Sidebar from './Sidebar';
+import BookingDetailsScreen from './BookingDetailsScreen';
+import PaymentScreen from './PaymentScreen';
 import { requestUserPermission } from './NotificationService'; // Ensure correct path
 
 const Stack = createStackNavigator();
@@ -32,8 +36,12 @@ function MainStackNavigator({ openSidebar }) {
         {props => <HomeScreen {...props} openSidebar={openSidebar} />}
       </Stack.Screen>
       <Stack.Screen name="ZodiacInfo" component={ZodiacInfoScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ZodiacDetail" component={ZodiacDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Consultation" component={ConsultationScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="BookingDetails" component={BookingDetailsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Payment" component={PaymentScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Articles" component={ArticlesScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Tools" component={ToolsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
