@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const AboutUsScreen = () => {
+const AboutScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>About Us Screen</Text>
+      <Text style={styles.text}>About Us</Text>
+      <Text style={styles.content}>This is an astrologer app...</Text>
     </View>
   );
 };
@@ -14,12 +15,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
   },
-  title: {
+  text: {
     fontSize: 24,
     fontWeight: 'bold',
   },
+  content: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginHorizontal: 20,
+  },
 });
 
-export default AboutUsScreen;
+export default AboutScreen;

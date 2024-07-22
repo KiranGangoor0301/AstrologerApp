@@ -118,7 +118,7 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Sidebar */}
+
       <Animated.View style={[styles.sidebar, animatedSidebarStyle]}>
         <Sidebar isVisible={isSidebarVisible} onClose={toggleSidebar} />
       </Animated.View>

@@ -1,16 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
+
+// Import the default profile picture
+const defaultProfilePicture = require('./pictures/profile.png'); // Update path as needed
 
 const Sidebar = ({ isVisible, onClose }) => {
   const navigation = useNavigation();
+  const [userDetails, setUserDetails] = useState(null);
   const translateX = useSharedValue(-300);
 
-  React.useEffect(() => {
+  useEffect(() => {
     translateX.value = isVisible ? 0 : -300;
   }, [isVisible]);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const user = auth().currentUser;
+      if (user) {
+        try {
+          const userDoc = await firestore().collection('users').doc(user.uid).get();
+          setUserDetails(userDoc.data());
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -20,11 +41,10 @@ const Sidebar = ({ isVisible, onClose }) => {
 
   const menuItems = [
     { title: 'Profile', screen: 'Profile', key: 'profile' },
-    { title: 'Settings', screen: 'Settings', key: 'settings' },
-    { title: 'Help Us', screen: 'HelpUs', key: 'helpus' },
-    { title: 'About Us', screen: 'AboutUs', key: 'aboutus' },
+    { title: 'About Us', screen: 'About', key: 'about' },
     { title: 'Contact', screen: 'Contact', key: 'contact' },
-    { title: 'Logout', key: 'logout' }
+    { title: 'Help Us', screen: 'HelpUs', key: 'help' },
+    { title: 'Logout', key: 'logout' },
   ];
 
   const handleNavigate = (screen) => {
@@ -35,7 +55,7 @@ const Sidebar = ({ isVisible, onClose }) => {
   const handleLogout = async () => {
     try {
       await auth().signOut();
-      navigation.navigate('Login');
+      navigation.navigate('Login'); // Adjust this to your login screen
       onClose();
     } catch (error) {
       console.error('Logout Error:', error);
@@ -57,8 +77,11 @@ const Sidebar = ({ isVisible, onClose }) => {
           <Text style={styles.closeButtonText}>✕</Text>
         </TouchableOpacity>
         <View style={styles.profileSection}>
-          <Image source={require('./pictures/profile.png')} style={styles.profileImage} />
-          <Text style={styles.profileName}>John Doe</Text>
+          <Image
+            source={userDetails?.profilePicture ? { uri: userDetails.profilePicture } : defaultProfilePicture}
+            style={styles.profileImage}
+          />
+          <Text style={styles.profileName}>Hello, {userDetails?.name || 'Guest'}!</Text>
         </View>
         <FlatList
           data={menuItems}
