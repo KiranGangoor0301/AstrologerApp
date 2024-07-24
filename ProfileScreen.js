@@ -91,7 +91,7 @@ const ProfileScreen = ({ navigation }) => {
 
         setMessage('Profile updated successfully');
         setTimeout(() => {
-          navigation.navigate('HomeScreen');
+          navigation.navigate('Home');
         }, 1000);
       }
     } catch (error) {
@@ -201,12 +201,14 @@ const ProfileScreen = ({ navigation }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.datePickerContainer}>
-            <DatePicker
-              date={dob}
-              onDateChange={setDob}
-              mode="date"
-              textColor="#007BFF"
-            />
+            <View style={styles.datePickerWrapper}>
+              <DatePicker
+                date={dob}
+                onDateChange={setDob}
+                mode="date"
+                textColor="black"
+              />
+            </View>
             <TouchableOpacity style={styles.okButton} onPress={() => setDatePickerVisible(false)}>
               <Text style={styles.okButtonText}>OK</Text>
             </TouchableOpacity>
@@ -298,6 +300,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#ffffff',
     fontSize: 16,
+    color: 'black',
   },
   button: {
     backgroundColor: '#007BFF',
@@ -327,7 +330,7 @@ const styles = StyleSheet.create({
   },
   datePickerText: {
     fontSize: 16,
-    color: '#495057',
+    color: 'black',
   },
   imagePicker: {
     alignItems: 'center',
@@ -364,6 +367,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     alignItems: 'center',
+  },
+  datePickerWrapper: {
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   optionsContainer: {
     backgroundColor: '#ffffff',
