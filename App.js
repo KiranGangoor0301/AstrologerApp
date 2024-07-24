@@ -3,28 +3,29 @@ import React, { useRef, useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Animated } from 'react-native';
-import Toast from 'react-native-toast-message';
+import Toast from 'react-native-toast-message'; // Import toast library
 
 import LoginScreen from './LoginScreen';
 import RegisterScreen from './RegisterScreen';
 import HomeScreen from './HomeScreen';
 import ZodiacInfoScreen from './ZodiacInfoScreen';
-import ZodiacDetailScreen from './ZodiacDetailScreen';
+import ZodiacDetailScreen from './ZodiacDetailScreen'; // Import ZodiacDetailScreen
 import ProfileScreen from './ProfileScreen';
 import SettingsScreen from './SettingsScreen';
 import HelpUsScreen from './HelpUsScreen';
 import AboutUsScreen from './AboutUsScreen';
 import ContactScreen from './ContactScreen';
 import ConsultationScreen from './ConsultationScreen';
-import ArticlesScreen from './ArticlesScreen';
-import ArticleDetailScreen from './ArticleDetailScreen';
+import ArticlesScreen from './ArticlesScreen'; // Ensure the correct path
+import ArticleDetailScreen from './ArticleDetailScreen'; // Ensure the correct path
 import ToolsScreen from './ToolsScreen';
 import NotificationsScreen from './NotificationsScreen';
 import Sidebar from './Sidebar';
 import BookingDetailsScreen from './BookingDetailsScreen';
-import PoseDetailScreen from './PoseDetailScreen';
+import PoseDetailScreen from './PoseDetailScreen'
 import PaymentScreen from './PaymentScreen';
-import { requestUserPermission } from './NotificationService';
+import { requestUserPermission } from './NotificationService'; // Ensure correct path
+
 
 const Stack = createStackNavigator();
 
@@ -71,7 +72,7 @@ function MainStackNavigator({ openSidebar }) {
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const translateX = useRef(new Animated.Value(-300)).current;
+  const translateX = useRef(new Animated.Value(-300)).current; // Start hidden to the left
 
   useEffect(() => {
     requestUserPermission(); // Request permissions on app start

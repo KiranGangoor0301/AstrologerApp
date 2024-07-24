@@ -15,7 +15,6 @@ export default function LoginScreen({ navigation }) {
   const [loadingLogin, setLoadingLogin] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingPhone, setLoadingPhone] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(false);
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -28,16 +27,6 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setMessage('Please enter valid email and password.');
-      return;
-    }
-    if (!validateEmail(email)) {
-      setMessage('Please enter a valid email address.');
-      return;
-    }
-
-    setMessage('');
     setLoadingLogin(true);
     try {
       await auth().signInWithEmailAndPassword(email, password);
@@ -79,12 +68,6 @@ export default function LoginScreen({ navigation }) {
   };
 
   const sendVerificationCode = async () => {
-    if (!phoneNumber) {
-      setMessage('Please enter your phone number.');
-      return;
-    }
-
-    setMessage('');
     setLoadingPhone(true);
     try {
       const formattedPhoneNumber = phoneNumber.startsWith('+91') ? phoneNumber : '+91' + phoneNumber;
@@ -100,12 +83,6 @@ export default function LoginScreen({ navigation }) {
   };
 
   const confirmCode = async () => {
-    if (!verificationCode) {
-      setMessage('Please enter the verification code.');
-      return;
-    }
-
-    setMessage('');
     setLoadingPhone(true);
     try {
       const credential = auth.PhoneAuthProvider.credential(verificationId, verificationCode);
@@ -118,44 +95,28 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  const validateEmail = (email) => {
-    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return re.test(email);
-  };
-
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.innerContainer}>
-        <Image source={require('./pictures/astrolog.jpeg')} style={styles.logo} />
+        <Image source={require('./pictures/log.jpg')} style={styles.logo} />
         <Text style={styles.title}>Login</Text>
-        <View style={styles.inputContainer}>
-          <Image source={require('./pictures/user.png')} style={styles.icon} />
-          <TextInput
-            style={styles.inputBox}
-            placeholder="Enter Your Email"
-            placeholderTextColor="black"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            accessibilityLabel="Email input"
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <Image source={require('./pictures/pass.png')} style={styles.icon} />
-          <TextInput
-            style={styles.inputBox}
-            placeholder="Enter Your Password"
-            placeholderTextColor="black"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!passwordVisible}
-            accessibilityLabel="Password input"
-          />
-          <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
-            <Image source={passwordVisible ? require('./pictures/eye.png') : require('./pictures/eye.png')} style={styles.icon} />
-          </TouchableOpacity>
-        </View>
+        <TextInput
+          style={styles.inputBox}
+          placeholder="Enter Your Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          accessibilityLabel="Email input"
+        />
+        <TextInput
+          style={styles.inputBox}
+          placeholder="Enter Your Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          accessibilityLabel="Password input"
+        />
         <TouchableOpacity style={[styles.button, styles.loginButton]} onPress={handleLogin} disabled={loadingLogin || loadingGoogle || loadingPhone}>
           {loadingLogin ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
         </TouchableOpacity>
@@ -180,7 +141,6 @@ export default function LoginScreen({ navigation }) {
             <TextInput
               style={styles.inputBox}
               placeholder="Enter Your Phone Number"
-              placeholderTextColor="black"
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="phone-pad"
@@ -202,7 +162,6 @@ export default function LoginScreen({ navigation }) {
             <TextInput
               style={styles.inputBox}
               placeholder="Enter Verification Code"
-              placeholderTextColor="black"
               value={verificationCode}
               onChangeText={setVerificationCode}
               keyboardType="numeric"
@@ -225,83 +184,82 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#F5F5F5',
   },
   innerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 20,
     backgroundColor: '#fff',
     borderRadius: 10,
-    marginHorizontal: 20,
+    width: '90%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
     elevation: 5,
   },
   logo: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+    width: 120,
+    height: 120,
     marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
+    color: '#333',
     marginBottom: 20,
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
   inputBox: {
-    flex: 1,
+    width: '100%',
     height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 10,
     paddingHorizontal: 10,
-    color:'black',
-  },
-  icon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
   },
   button: {
-    paddingVertical: 15,
+    width: '100%',
+    height: 40,
     borderRadius: 5,
-    marginBottom: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
   },
   loginButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#1E90FF',
   },
   googleButton: {
-    backgroundColor: '#db4437',
+    backgroundColor: '#DB4437',
   },
   phoneButton: {
-    backgroundColor: '#34b7f1',
+    backgroundColor: '#34A853',
   },
   buttonText: {
     color: '#fff',
-    textAlign: 'center',
     fontSize: 16,
   },
   googleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
   },
   googleLogo: {
     width: 20,
     height: 20,
     marginRight: 10,
   },
-  message: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
   link: {
-    color: '#007bff',
-    textAlign: 'center',
+    color: '#1E90FF',
+    marginTop: 15,
+    textDecorationLine: 'underline',
+  },
+  message: {
     marginTop: 10,
+    color: 'red',
   },
   modalContainer: {
     flex: 1,
@@ -310,17 +268,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalInnerContainer: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
     width: '80%',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
     alignItems: 'center',
   },
   modalButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#1E90FF',
   },
   cancelButton: {
-    backgroundColor: '#ccc',
-    marginTop: 10,
+    backgroundColor: '#FF6347',
   },
 });

@@ -134,7 +134,6 @@ const RegisterScreen = ({ navigation }) => {
         <TextInput
           style={styles.inputBox}
           placeholder="Enter Your Name"
-          placeholderTextColor="black"
           value={name}
           onChangeText={setName}
         />
@@ -142,7 +141,6 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={[styles.inputBox, styles.halfInput]}
             placeholder="Enter Your Age"
-            placeholderTextColor="black"
             value={age}
             onChangeText={setAge}
             keyboardType="numeric"
@@ -150,7 +148,6 @@ const RegisterScreen = ({ navigation }) => {
           <TextInput
             style={[styles.inputBox, styles.halfInput]}
             placeholder="Enter Your Phone Number"
-            placeholderTextColor="black"
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             keyboardType="numeric"
@@ -191,7 +188,6 @@ const RegisterScreen = ({ navigation }) => {
         <TextInput
           style={styles.inputBox}
           placeholder="Enter Your Email"
-          placeholderTextColor="black"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -200,7 +196,6 @@ const RegisterScreen = ({ navigation }) => {
         <TextInput
           style={styles.inputBox}
           placeholder="Enter Your Password"
-          placeholderTextColor="black"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -304,86 +299,87 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    padding: 16,
+    backgroundColor: '#F5F5F5',
   },
   backButton: {
     marginBottom: 20,
   },
   backButtonText: {
-    color: '#007BFF',
     fontSize: 16,
+    color: '#007BFF',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 20,
+    elevation: 3, // Shadow effect for Android
+    shadowColor: '#000000', // Shadow effect for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  imagePicker: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  imagePickerText: {
+    color: '#007BFF',
   },
   inputBox: {
-    width: '100%',
-    padding: 15,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 8,
+    borderColor: '#E0E0E0',
     borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 10,
-    marginBottom: 15,
-    backgroundColor: '#f8f9fa',
-  },
-  datePickerText: {
-    color: 'black',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   halfInput: {
-    width: '48%',
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  datePickerText: {
+    color: '#333',
   },
   button: {
     backgroundColor: '#007BFF',
-    paddingVertical: 15,
-    borderRadius: 10,
+    borderRadius: 8,
+    paddingVertical: 12,
     alignItems: 'center',
+    marginVertical: 16,
   },
   buttonText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
   errorMessage: {
-    color: '#ff0000',
+    color: '#FF0000',
     textAlign: 'center',
-    marginTop: 10,
+    marginVertical: 10,
   },
   message: {
-    color: '#28a745',
+    color: '#28A745',
     textAlign: 'center',
-    marginTop: 10,
-  },
-  imagePicker: {
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  imagePickerText: {
-    color: '#007BFF',
-    textDecorationLine: 'underline',
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    marginVertical: 10,
   },
   modalContainer: {
     flex: 1,
@@ -392,37 +388,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   datePickerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     padding: 20,
+    width: '80%',
     alignItems: 'center',
-    width: '90%',
-  },
-  okButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  okButtonText: {
-    color: '#fff',
-    fontSize: 16,
   },
   optionsContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     padding: 20,
-    width: '90%',
+    width: '80%',
+    maxHeight: '50%',
   },
   optionItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    padding: 10,
   },
   optionText: {
     fontSize: 16,
-    color: 'black',
+    color: '#007BFF',
+  },
+  okButton: {
+    backgroundColor: '#007BFF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  okButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
