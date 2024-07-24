@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, Dimensions, Image, TouchableOpacity, ScrollView } from 'react-native';
-import Footer from './Footer'; // Ensure the correct path
+import { View, Text, StyleSheet, FlatList, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 const zodiacSigns = [
   { id: '1', name: 'Aries', image: require('./pictures/aries1.png'), dateRange: 'March 21 - April 19', element: 'Fire', ruler: 'Mars' },
@@ -39,18 +39,33 @@ export default function ZodiacInfoScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Explore Your Zodiac Sign</Text>
-        <Text style={styles.subtitle}>Discover the traits, elements, and rulers of each zodiac sign.</Text>
-        <FlatList
-          data={zodiacSigns}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
-        />
-      </ScrollView>
-      <Footer />
+      <WebView
+        source={{ html: `
+          <html>
+            <body style="margin: 0; overflow: hidden;">
+              <video autoplay muted loop style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                <source src="./pictures/Stars.mp4" type="video/mp4">
+              </video>
+            </body>
+          </html>
+        ` }}
+        style={StyleSheet.absoluteFill}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+      />
+      <FlatList
+        data={zodiacSigns}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        ListHeaderComponent={
+          <>
+            <Text style={styles.title}>Explore Your Zodiac Sign</Text>
+            <Text style={styles.subtitle}>Discover the traits, elements, and rulers of each zodiac sign.</Text>
+          </>
+        }
+      />
     </View>
   );
 }
@@ -58,23 +73,18 @@ export default function ZodiacInfoScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F4F8',
-    padding: 10,
-  },
-  scrollContainer: {
-    flexGrow: 1,
   },
   title: {
     fontSize: 30,
     fontWeight: '700',
-    color: '#2E3A59',
+    color: '#FFFFFF', // Text color set to white for better contrast
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
     fontWeight: '300',
-    color: '#4A4A4A',
+    color: '#FFFFFF', // Text color set to white for better contrast
     textAlign: 'center',
     marginBottom: 20,
     paddingHorizontal: 10,
