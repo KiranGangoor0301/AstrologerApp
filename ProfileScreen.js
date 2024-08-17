@@ -91,7 +91,7 @@ const ProfileScreen = ({ navigation }) => {
 
         setMessage('Profile updated successfully');
         setTimeout(() => {
-          navigation.navigate('HomeScreen');
+          navigation.navigate('Home');
         }, 1000);
       }
     } catch (error) {
